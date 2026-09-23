@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
 
   try {
     const participant = await getParticipant(participant_id);
-    const notes = await getRecentProgressNotes(participant_id, months_back || 3);
+    const notes = await getRecentProgressNotes(participant_id, months_back || 1);
 
     if (notes.length === 0) {
       res.status(422).json({ error: "No progress notes found in that period" });
