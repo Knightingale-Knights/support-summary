@@ -3,7 +3,9 @@ const {
   getParticipantName,
   getParticipantSetting,
   getSupportType,
-  getRecentProgressNotes
+  getRecentProgressNotes,
+  getProgressNotes,
+  getPreviousMonthRange
 } = require("../lib/bubble");
 const { draftSummaryContent } = require("../lib/claude");
 const { buildSupportSummaryPptx } = require("../lib/pptx");
@@ -14,7 +16,7 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const { participant_id, months_back } = req.body || {};
+  const { participant_id, months_back, period } = req.body || {};
   if (!participant_id) {
     res.status(400).json({ error: "participant_id is required" });
     return;
@@ -22,7 +24,10 @@ module.exports = async (req, res) => {
 
   try {
     const participant = await getParticipant(participant_id);
-    const notes = await getRecentProgressNotes(participant_id, months_back || 1);
+    const notes =
+      period === "previous_month"
+        ? await getProgressNotes(participant_id, getPreviousMonthRange())
+        : await getRecentProgressNotes(participant_id, months_back || 1);
 
     if (notes.length === 0) {
       res.status(422).json({ error: "No progress notes found in that period" });
