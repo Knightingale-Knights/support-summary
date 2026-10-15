@@ -6,6 +6,8 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@foliojs-fork/pdfkit": "^0.15.3",
+    "pdfmake": "^0.2.20",
     "pptxgenjs": "^3.12.0"
   }
 }

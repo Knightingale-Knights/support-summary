@@ -9,6 +9,7 @@ const {
 } = require("../lib/bubble");
 const { draftSummaryContent } = require("../lib/claude");
 const { buildSupportSummaryPptx } = require("../lib/pptx");
+const { buildSupportSummaryPdf } = require("../lib/pdf");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -16,7 +17,8 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const { participant_id, months_back, period } = req.body || {};
+  const { participant_id, months_back, period, format } = req.body || {};
+  const asPdf = String(format || "").toLowerCase() === "pdf";
   if (!participant_id) {
     res.status(400).json({ error: "participant_id is required" });
     return;
@@ -49,7 +51,8 @@ module.exports = async (req, res) => {
     const lastDate = new Date(notes[notes.length - 1].date).toLocaleDateString("en-AU");
     const reportPeriod = `${firstDate} - ${lastDate}`;
 
-    const base64 = await buildSupportSummaryPptx({
+    const build = asPdf ? buildSupportSummaryPdf : buildSupportSummaryPptx;
+    const base64 = await build({
       participantName,
       reportPeriod,
       content
@@ -60,7 +63,11 @@ module.exports = async (req, res) => {
       participant_name: participantName,
       report_period: reportPeriod,
       session_count: notes.length,
-      filename: `${participantName.replace(/\s+/g, "_")}_Supports_Summary.pptx`,
+      format: asPdf ? "pdf" : "pptx",
+      mime_type: asPdf
+        ? "application/pdf"
+        : "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      filename: `${participantName.replace(/\s+/g, "_")}_Supports_Summary.${asPdf ? "pdf" : "pptx"}`,
       file_base64: base64
     });
   } catch (err) {
